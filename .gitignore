@@ -1,0 +1,49 @@
+# Ignore Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignore virtual environment
+.venv/
+env/
+venv/
+
+# Ignore model and large data files
+*.h5
+*.hdf5
+*.ckpt
+*.pb
+*.onnx
+*.zip
+
+# Ignore uploads and static files
+static/uploads/
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and temporary files
+*.log
+*.bak
+*.swp
+*.tmp
+
+# Ignore cache
+*.cache/
+
+# Ignore model and large data files
+*.h5
+*.hdf5
+*.ckpt
+*.pb
+*.onnx
+*.zip
+*.crop_desease_dataset.zip
+*.pkl
+
+models/
