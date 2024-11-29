@@ -1,17 +1,17 @@
+import os
+
+# Disable GPU and suppress warnings
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_TRT_LOG_LEVEL'] = '0'
+import tensorflow as tf
 from flask import Flask, request, jsonify, render_template
-from tensorflow.keras.models import load_model, Model
+from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 import pickle
-import os
-import gdown
-import tensorflow as tf
-import traceback
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-os.environ['TF_TRT_LOG_LEVEL'] = '0'
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
