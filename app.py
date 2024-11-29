@@ -35,12 +35,12 @@ download_model('19bcZ_N8Pz8vN6s8bK9pR5kLL_7Ii40x7', class_names_path)
 
 
 # Load Models and Scaler
-cnn_model = load_model('models/model.h5', compile=False)
-with open('models/svm_model.pkl', 'rb') as svm_file:
+cnn_model = load_model('model.h5', compile=False)
+with open('svm_model.pkl', 'rb') as svm_file:
     svm_model = pickle.load(svm_file)
-with open('models/scaler.pkl', 'rb') as scaler_file:
+with open('scaler.pkl', 'rb') as scaler_file:
     scaler = pickle.load(scaler_file)
-with open('models/class_names.pkl', 'rb') as class_names_file:
+with open('class_names.pkl', 'rb') as class_names_file:
     class_names = pickle.load(class_names_file)
 
 
