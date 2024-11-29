@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.preprocessing import StandardScaler
 import numpy as np
@@ -7,8 +7,7 @@ import pickle
 import os
 import gdown
 import tensorflow as tf
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+import traceback
 
 app = Flask(__name__)
 
@@ -36,6 +35,8 @@ download_model('19bcZ_N8Pz8vN6s8bK9pR5kLL_7Ii40x7', class_names_path)
 
 # Load Models and Scaler
 cnn_model = load_model('model.h5', compile=False)
+
+
 with open('svm_model.pkl', 'rb') as svm_file:
     svm_model = pickle.load(svm_file)
 with open('scaler.pkl', 'rb') as scaler_file:
