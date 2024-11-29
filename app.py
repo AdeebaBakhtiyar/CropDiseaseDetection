@@ -9,6 +9,9 @@ import gdown
 import tensorflow as tf
 import traceback
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_TRT_LOG_LEVEL'] = '0'
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
