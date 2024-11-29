@@ -38,7 +38,11 @@ download_model('19bcZ_N8Pz8vN6s8bK9pR5kLL_7Ii40x7', class_names_path)
 
 # Load Models and Scaler
 cnn_model = load_model('model.h5', compile=False)
+converter = tf.lite.TFLiteConverter.from_keras_model(cnn_model)
+tflite_model = converter.convert()
 
+with open('model.tflite', 'wb') as f:
+    f.write(tflite_model)
 
 with open('svm_model.pkl', 'rb') as svm_file:
     svm_model = pickle.load(svm_file)
@@ -64,6 +68,7 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    cnn_model = load_model('model.h5', compile=False)
     if 'file' not in request.files:
         return jsonify({"error": "No file uploaded"})
 

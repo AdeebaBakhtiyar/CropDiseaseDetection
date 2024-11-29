@@ -45,5 +45,6 @@ Thumbs.db
 *.zip
 *.crop_desease_dataset.zip
 *.pkl
+*.tflite
 
 models/
