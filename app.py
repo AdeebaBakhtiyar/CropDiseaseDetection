@@ -1,41 +1,56 @@
-from flask import Flask, render_template, request, jsonify
-from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+from flask import Flask, request, jsonify, render_template
+from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 import pickle
 import os
-from tensorflow.config import experimental
+import gdown
+import tensorflow as tf
 
-# Disable GPU and force CPU usage
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "false"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
 app = Flask(__name__)
+
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-# Load pre-trained models and data
-vgg16_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+# Define model paths
+model_path = 'model.h5'
+svm_model_path = 'svm_model.pkl'
+scaler_path = 'scaler.pkl'
+class_names_path = 'class_names.pkl'
 
-with open('models/svm_model.pkl', 'rb') as f:
-    svm_model = pickle.load(f)
+# Check if the model exists, if not, download it
+def download_model(file_id, model_file_path):
+    if not os.path.exists(model_file_path):
+        print(f"Downloading model from Google Drive: {file_id}")
+        url = f'https://drive.google.com/uc?export=download&id={file_id}'
+        gdown.download(url, model_file_path, quiet=False)
 
-with open('models/scaler.pkl', 'rb') as f:
-    scaler = pickle.load(f)
+# Download models if not already downloaded
+download_model('19mYpbOP2ilDRfNBD40slpcx3pospZ2R0', model_path)
+download_model('1ECfwi3GWfcL_ZX6K2Q9HPcIGuhxG1Bz1', svm_model_path)
+download_model('1PvxeG14gOJgmLPZB5UsHGx7t3fkR2TFs', scaler_path)
+download_model('19bcZ_N8Pz8vN6s8bK9pR5kLL_7Ii40x7', class_names_path)
 
-with open('models/class_names.pkl', 'rb') as f:
-    class_names = pickle.load(f)
+
+# Load Models and Scaler
+cnn_model = load_model('models/model.h5', compile=False)
+with open('models/svm_model.pkl', 'rb') as svm_file:
+    svm_model = pickle.load(svm_file)
+with open('models/scaler.pkl', 'rb') as scaler_file:
+    scaler = pickle.load(scaler_file)
+with open('models/class_names.pkl', 'rb') as class_names_file:
+    class_names = pickle.load(class_names_file)
 
 
-def extract_features(img_path):
-    """Extract features using VGG16 model."""
-    img = load_img(img_path, target_size=(224, 224))
+# Preprocessing function
+def preprocess_image(image_path):
+    img = load_img(image_path, target_size=(224, 224))
     img_array = img_to_array(img)
-    img_array = preprocess_input(img_array)
-    img_array = np.expand_dims(img_array, axis=0)
-
-    features = vgg16_model.predict(img_array)
-    return features.flatten()
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    img_array = img_array / 255.0  # Normalize to [0, 1]
+    return img_array
 
 
 @app.route('/')
@@ -50,19 +65,23 @@ def predict():
 
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"error": "No selected file"})
+        return jsonify({"error": "No file selected"})
 
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
 
     try:
-        # Extract features and make predictions
-        features = extract_features(filepath)
+        # Preprocess the image and extract features
+        img_array = preprocess_image(filepath)
+        features = cnn_model.predict(img_array).flatten()
+
+        # Scale the features and make predictions
         scaled_features = scaler.transform([features])
         prediction = svm_model.predict(scaled_features)[0]
         confidence = svm_model.predict_proba(scaled_features)[0][prediction] * 100
 
         predicted_class = class_names[prediction]
+
         return render_template(
             'index.html',
             image_url=f'/{filepath}',
@@ -71,7 +90,7 @@ def predict():
         )
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
 
 
 if __name__ == '__main__':
